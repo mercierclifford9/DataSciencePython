@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import os
 from utils.function_utils import data_cleaning, mean_median, update_data
 from collections import Counter
