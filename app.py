@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 from utils.function_utils import data_cleaning, mean_median, update_data
-from collections import Counter
 
 
 def run ():
@@ -193,8 +192,10 @@ def run ():
 
 
     # Separer les valeurs et compter les occurrences
-    compteur_appareils = Counter()
-    df['appareils_utilises'].dropna().map(lambda x: compteur_appareils.update(x.split(', ')))
+    appareils = df['appareils_utilises'].dropna().str.split(', ').explode()
+
+    compteur_appareils = appareils.value_counts(normalize=True) * 100
+    
 
     # Convertir en DataFrame pour Matplotlib
     labels, values = zip(*compteur_appareils.items())
@@ -206,7 +207,7 @@ def run ():
 
     st.pyplot(fig2)
 
-    st.subheader("Graphique en ligne : Evolution du temps passe par age")
+    st.markdown("##### Graphique en ligne : Evolution du temps passe par age")
     fig, ax = plt.subplots()
     sns.lineplot(data=df, x='tranche_age', y='temps_reseaux_sociaux_min', marker="o", ax=ax)
     ax.set_title("Évolution du temps passe sur les réseaux sociaux par age")
