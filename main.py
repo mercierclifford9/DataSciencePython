@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 from matplotlib import pyplot as plt
+import streamlit as st
 import app as stl
 import os
 
@@ -17,30 +18,11 @@ def run():
     #Suppression des colonne avec les valeur null 'NaN'
     df.dropna(axis=1, how='all', inplace=True)
 
-    #Suppression des colonnes comportant les valeurs '-- / 0'
-    df=df.loc[ : , ~(df == '-- / 0').all(),]
-
-    #Suppression des colonnes comportant les valeurs '0.00'
-    df=df.loc[ : , ~(df == '0.00').all()]
-
-    #Suppresion de la colonne score
-    df.drop(inplace=True, columns=['Score total'])
-
     #Renommage des colonnes 
-    df.columns=['date-heure','age','sexe', 'temps_streaming',
-                'temps_jeux', 'reseau_social_pref', 'streaming_pref', 
-                'jeux_pref','appareils_utilises','mode_consommation','Commentaires']
-    df.drop(inplace=True, columns=['Commentaires'])
+    df.columns=['date-heure','email','age','sexe', 'temps_reseaux_sociaux_min', 'temps_streaming_min',
+                'temps_jeux_min', 'reseau_social_pref', 'streaming_pref', 
+                'jeux_pref','appareils_utilises','mode_consommation']
     
-    #Formatage des colonnes
-    df['date-heure'] = df['date-heure'].str.replace(" UTC−4", "")
-
-    #Tirer que l'age dans le champs age
-    df['age'] = df['age'].str.replace(r'[^\d]', '', regex=True)
-
-    #Formatage du champs mode de consomation
-    df['mode_consommation'] = (df['mode_consommation']
-                                .str.replace("Avec des amis/ familles","Accompagne"))
     
     #Abreviation de Masculin et de Feminin
     df['sexe'] = df['sexe'].str.replace("Masculin","M")
@@ -51,32 +33,39 @@ def run():
         'Moins de 30 minutes': 15,       # Valeur mediane
         'Entre 30 minutes et 1 heure': 45,
         'Entre 1 heure et 2 heures': 90,
-        'Plus de 2 heures': 150           # 2h30 comme valeur representative
+        'Entre 2 heure et 3 heures': 150,
+        'Entre 3 heure et 4 heures': 210,
+        'Entre 4 heure et 5 heures': 270,
+        'Plus de 5 heures': 330           # 5h30 comme valeur representative
     }
 
-    # Application du mappage du temps sur la serie 'temps_jeux'
-    df['temps_jeux'] = (df['temps_jeux']
+    # Application du mappage du temps sur la serie 'temps_jeux_min'
+    df['temps_jeux_min'] = (df['temps_jeux_min']
                             .map(time_mapping)
                             .fillna(0))  # Remplace les non-réponses par 0
     
-    # Application du mappage du temps sur la serie 'temps_streaming'
-    df['temps_streaming'] = (df['temps_streaming']
+    # Application du mappage du temps sur la serie 'temps_streaming_min'
+    df['temps_streaming_min'] = (df['temps_streaming_min']
                             .map(time_mapping)
                             .fillna(0))  # Remplace les non-réponses par 0
     
+    # Application du mappage du temps sur la serie 'temps_reseaux_sociaux_min'
+    df['temps_reseaux_sociaux_min'] = (df['temps_reseaux_sociaux_min']
+                                        .map(time_mapping)
+                                        .fillna(0))
     """typage des series"""
     #convertion generale des series en leur type 
     df=df.convert_dtypes()
 
     #convertion specifique de la serie 'date' en type datetime
     df['date-heure'] = (pd.to_datetime(df['date-heure'], 
-                            format='%Y/%m/%d %I:%M:%S %p')) 
+                            format='%d/%m/%Y %H:%M:%S')) 
     
     #convertion specifique de la serie 'age' en int
     df['age'] = df['age'].astype('int64')
 
     #Calcul de la moyenne et de la mediane pour le temps passe dans les differentes actions
-    analyse_desc = (df[['temps_streaming', 'temps_jeux']]
+    analyse_desc = (df[['temps_streaming_min', 'temps_jeux_min', 'temps_reseaux_sociaux_min']]
                     .agg(['mean', 'median'])
                     .rename(index={
                                     'mean' : 'Moyenne',
@@ -87,7 +76,7 @@ def run():
     
     # Création de la serie des tranches d'âge
     df['tranche_age'] = pd.cut(df['age'], 
-                                bins=[0, 20, 25, 30, 100], 
+                                bins=[0, 19, 25, 30, 100], 
                                 labels=['<20', '20-25', '26-30', '30+'])
     
 
@@ -128,7 +117,7 @@ def run():
     print("NB: Unite de mesure '%'\n")
     print("\nRepartion des plateformes de reseau social preferees par sexe en %")
     print(social_sexe.round(1).rename(index={'M' : 'Masculin', 'F' : 'Feminin'}))
-    print("NB: Unite de mesure '%'\n")
+    print("NB: L'unite de mesure est '%'\n")
 
     print("\nRepartion des plateformes de jeux preferees par tranches d'age en %")
     print(game_age.round(1))
@@ -148,13 +137,13 @@ def run():
     print(taux_utilisation_app)
     print("NB: Unite de mesure '%'\n")
 
-    df.to_csv("./data/Corrige.csv")
+    df.to_csv("./data/corrected_data.csv")
     # print(df.dtypes)
 
     # print(df)
 
-    stl.write("hello")
-
+    df['temps_streaming_min'].hist(bins=5)
+    plt.show()
 
 
 
