@@ -23,18 +23,25 @@ def run ():
 
     st.subheader("Nettoyage des donnnes (Data cleaning)")
 
+    col_1_1, col_1_2 = st.columns(2)
+    with col_1_1 :
     #creation du bouton pour mettre a jour les donnees
-    if st.button("Cliquez pour mettre a jour les donnees"):
-        update_data(df, path_file)
+        if st.button("Cliquer pour mettre a jour les donnees"):
+            update_data(df, path_file)
+
+    with col_1_2 :
+        st.markdown("[Cliquer pour remplir le formulaire google form](https://docs.google.com/forms/d/e/1FAIpQLSfkp1Hu3z34fIyREIUKsO7FhhCWCNGP-aDLrLCeCqp94PWaxg/viewform?usp=header)")
 
 
-    st.text("Pour commencer nous allons vous presentez les donnees brut avant nettoyage")
+    st.text(f"Pour commencer nous allons vous presentez les donnees brut avant nettoyage - {df.iloc[:, 0].count()} lignes de donnees")
     st.dataframe(df)
 
 
     df = data_cleaning(df) #Appel de notre foncion data_cleaning() declare dans function_utils.py
-    st.text("Et voila les donnees apres nettoyage")
+    st.text(f"Et voila les donnees apres nettoyage - {df.iloc[:, 0].count()} lignes de donnees")
     st.dataframe(df)
+    # df.to_csv("./data/data_digital_hatits_clean.csv")
+
 
     st.subheader("Analyse descriptive")
 
@@ -197,15 +204,31 @@ def run ():
     compteur_appareils = appareils.value_counts(normalize=True) * 100
     
 
-    # Convertir en DataFrame pour Matplotlib
+
+
     labels, values = zip(*compteur_appareils.items())
+    colors = ['#FF6F61','#6B5B95', '#88B04B', '#F7B7A3', '#FFCC00']
 
-    fig2 , ax2 = plt.subplots()
+    fig2, ax2 = plt.subplots()
     st.markdown("#####  Un camembert (Pie Chart) montrant la répartition des types d'appareils utilisés")
-    ax2.pie(values, labels=labels, autopct="%1.1f%%", colors=['#FF6F61','#6B5B95', '#88B04B', '#F7B7A3', '#FFCC00'])
-    ax2.set_title("Répartition des types d'appareils utilisés")
 
+    # Camembert sans labels
+    wedges, texts, autotexts = ax2.pie(
+        values, autopct="%1.1f%%", colors=colors, startangle=90
+    )
+
+    # Ajout legende alignee a droite
+    ax2.legend(wedges,labels, title="Appareils",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),  # Position a droite
+        frameon=False
+    )
+
+    ax2.set_title("Repartition des types d'appareils utilises")
+
+    # Affichage dans Streamlit
     st.pyplot(fig2)
+
 
     st.markdown("##### Graphique en ligne : Evolution du temps passe par age")
     fig, ax = plt.subplots()
@@ -214,6 +237,41 @@ def run ():
     ax.set_xlabel("Tranche d'age")
     ax.set_ylabel("Temps (minutes)")
     st.pyplot(fig)
+
+
+    # conclusion des tendances observees.
+
+    st.markdown("#### Résumé de l'analyse des habitudes de consommation numérique")
+
+    st.markdown("##### Statistiques clés")
+
+    st.markdown("""
+    - **Profil démographique :**  
+    58% d'hommes, 42% de femmes  
+    75% ont entre 20 et 25 ans
+
+    - **Usage quotidien moyen :**  
+    **Réseaux sociaux :** 3h16 min  
+    **Streaming vidéo :** 2h16 min  
+    **Jeux vidéo :** 1h02 min  
+
+    - **Plateformes les plus utilisées :**  
+    **Réseaux sociaux :** WhatsApp, Instagram, TikTok  
+    **Streaming :** Netflix, YouTube  
+    **Jeux :** PlayStation en tête
+
+    - **Appareils dominants :**  
+    98% utilisent un **smartphone**, suivis des laptops et tablettes
+
+    - **Mode de consommation :**  
+    87% consomment seuls
+    """)
+
+    # conclusion encadre
+    st.info("""
+    Ces résultats montrent une forte **dépendance aux contenus numériques mobiles**, surtout chez les **jeunes adultes connectés** via des plateformes sociales et de streaming.  
+    Cela offre des **opportunités stratégiques** pour le marketing digital, le divertissement mobile et les services personnalisés.
+    """)
 
 
 
